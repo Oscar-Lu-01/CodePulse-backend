@@ -1,0 +1,5 @@
+用户登录
+0、准备枚举类（权限枚举）、常量类（用户常量）
+1、根据mybatis flex生成代码
+2、开发dto、service、controller
+3、开发权限校验aop（AuthCheck注解、aop编程）
