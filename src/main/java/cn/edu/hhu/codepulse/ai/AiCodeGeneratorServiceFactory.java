@@ -1,6 +1,7 @@
 package cn.edu.hhu.codepulse.ai;
 
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
@@ -15,8 +16,14 @@ public class AiCodeGeneratorServiceFactory {
     @Resource
     ChatModel chatModel;
 
+    @Resource
+    StreamingChatModel streamingChatModel;
+
     @Bean
     AiCodeGeneratorService aiCodeGenerateService(){
-        return AiServices.create(AiCodeGeneratorService.class,chatModel);
+        return AiServices.builder(AiCodeGeneratorService.class)
+                .chatModel(chatModel)
+                .streamingChatModel(streamingChatModel)
+                .build();
     };
 }
