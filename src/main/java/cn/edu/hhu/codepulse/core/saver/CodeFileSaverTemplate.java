@@ -1,5 +1,6 @@
 package cn.edu.hhu.codepulse.core.saver;
 
+import cn.edu.hhu.codepulse.constant.AppConstant;
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;
 import cn.edu.hhu.codepulse.model.enums.CodeGenTypeEnum;
@@ -17,7 +18,8 @@ import java.nio.charset.StandardCharsets;
 public abstract class CodeFileSaverTemplate<T> {
 
     // 文件保存根目录
-    protected static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+    protected static final String FILE_SAVE_ROOT_DIR = AppConstant.CODE_OUTPUT_ROOT_DIR;
+
 
     /**
      * 模板方法：保存代码的标准流程（使用 appId）

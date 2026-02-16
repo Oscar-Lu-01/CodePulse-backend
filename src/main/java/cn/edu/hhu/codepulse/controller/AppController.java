@@ -8,10 +8,7 @@ import cn.edu.hhu.codepulse.constant.UserConstant;
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;
 import cn.edu.hhu.codepulse.exception.ThrowUtils;
-import cn.edu.hhu.codepulse.model.dto.app.AppAddRequest;
-import cn.edu.hhu.codepulse.model.dto.app.AppAdminUpdateRequest;
-import cn.edu.hhu.codepulse.model.dto.app.AppQueryRequest;
-import cn.edu.hhu.codepulse.model.dto.app.AppUpdateRequest;
+import cn.edu.hhu.codepulse.model.dto.app.*;
 import cn.edu.hhu.codepulse.model.entity.User;
 import cn.edu.hhu.codepulse.model.enums.CodeGenTypeEnum;
 import cn.edu.hhu.codepulse.model.vo.AppVO;
@@ -81,6 +78,26 @@ public class AppController {
                                 .build()
                 ));
     }
+
+    /**
+     * 应用部署
+     *
+     * @param appDeployRequest 部署请求
+     * @param request          请求
+     * @return 部署 URL
+     */
+    @PostMapping("/deploy")
+    public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(appDeployRequest == null, ErrorCode.PARAMS_ERROR);
+        Long appId = appDeployRequest.getAppId();
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 调用服务部署应用
+        String deployUrl = appService.deployApp(appId, loginUser);
+        return ResultUtils.success(deployUrl);
+    }
+
 
     /**
      * 创建应用
