@@ -1,6 +1,6 @@
 package cn.edu.hhu.codepulse.service;
 
-import cn.edu.hhu.codepulse.model.dto.UserQueryRequest;
+import cn.edu.hhu.codepulse.model.dto.user.UserQueryRequest;
 import cn.edu.hhu.codepulse.model.vo.LoginUserVO;
 import cn.edu.hhu.codepulse.model.vo.UserVO;
 import com.mybatisflex.core.query.QueryWrapper;

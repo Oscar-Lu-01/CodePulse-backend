@@ -1,4 +1,4 @@
-package cn.edu.hhu.codepulse.model.dto;
+package cn.edu.hhu.codepulse.model.dto.user;
 
 import lombok.Data;
 

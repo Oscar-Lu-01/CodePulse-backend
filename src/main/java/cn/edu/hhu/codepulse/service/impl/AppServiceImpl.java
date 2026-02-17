@@ -7,9 +7,11 @@ import cn.edu.hhu.codepulse.exception.ErrorCode;
 import cn.edu.hhu.codepulse.exception.ThrowUtils;
 import cn.edu.hhu.codepulse.model.dto.app.AppQueryRequest;
 import cn.edu.hhu.codepulse.model.entity.User;
+import cn.edu.hhu.codepulse.model.enums.ChatHistoryMessageTypeEnum;
 import cn.edu.hhu.codepulse.model.enums.CodeGenTypeEnum;
 import cn.edu.hhu.codepulse.model.vo.AppVO;
 import cn.edu.hhu.codepulse.model.vo.UserVO;
+import cn.edu.hhu.codepulse.service.ChatHistoryService;
 import cn.edu.hhu.codepulse.service.UserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -23,9 +25,11 @@ import cn.edu.hhu.codepulse.mapper.AppMapper;
 import cn.edu.hhu.codepulse.service.AppService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
-
+import lombok.extern.slf4j.Slf4j;
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,7 @@ import java.util.stream.Collectors;
  * @author <a href="https://github.com/Oscar-Lu-01">抱璞</a>
  */
 @Service
+@Slf4j
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService{
 
     @Resource
@@ -46,6 +51,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -130,8 +138,30 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-        // 5. 调用 AI 生成代码
-        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        // 5. 通过校验后，添加用户消息到对话历史
+        chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
+        // 6. 调用 AI 生成代码（流式）
+        Flux<String> contentFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        // 7. 收集AI响应内容并在完成后记录到对话历史
+        StringBuilder aiResponseBuilder = new StringBuilder();
+        return contentFlux
+                .map(chunk -> {
+                    // 收集AI响应内容
+                    aiResponseBuilder.append(chunk);
+                    return chunk;
+                })
+                .doOnComplete(() -> {
+                    // 流式响应完成后，添加AI消息到对话历史
+                    String aiResponse = aiResponseBuilder.toString();
+                    if (StrUtil.isNotBlank(aiResponse)) {
+                        chatHistoryService.addChatMessage(appId, aiResponse, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+                    }
+                })
+                .doOnError(error -> {
+                    // 如果AI回复失败，也要记录错误消息
+                    String errorMessage = "AI回复失败: " + error.getMessage();
+                    chatHistoryService.addChatMessage(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+                });
     }
 
     @Override
@@ -179,5 +209,60 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         return String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
     }
 
+    /**
+     * 删除应用时关联删除对话历史
+     * 重写 ServiceImpl 的 IService 的方法
+     *
+     * @param id 应用ID
+     * @return 是否成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class) // 1. 开启事务，确保数据库操作的一致性
+    public boolean removeById(Serializable id) {
+        if (id == null) {
+            return false;
+        }
+        // 转换为 Long 类型
+        Long appId = Long.valueOf(id.toString());
+        if (appId <= 0) {
+            return false;
+        }
+        // 2. 获取应用信息（为了拿到 deployKey 用于后续清理磁盘）
+        App app = this.getById(appId);
+        if (app == null) {
+            return false;
+        }
+        // 3. 先删除关联的对话历史记录
+        try {
+            chatHistoryService.deleteByAppId(appId);
+        } catch (Exception e) {
+            log.error("删除应用关联对话历史失败, appId: {}, 错误: {}", appId, e.getMessage());
+            // 根据业务需求，这里可以选择抛出异常触发回滚，或仅记录日志
+        }
+        // 4. 执行应用本身的数据库删除操作
+        // 调用 super 指向 ServiceImpl 的默认实现，处理物理删除或逻辑删除
+        boolean removed = super.removeById(id);
+        // 5. 如果数据库删除成功，则异步或同步清理磁盘上的部署文件
+        if (removed) {
+            String deployKey = app.getDeployKey();
+            if (StrUtil.isNotBlank(deployKey)) {
+                try {
+                    // 构建部署目录的绝对路径
+                    String deployDirPath = AppConstant.CODE_DEPLOY_ROOT_DIR + File.separator + deployKey;
+                    File deployDir = new File(deployDirPath);
+
+                    // 物理删除文件夹及其下所有内容
+                    if (deployDir.exists()) {
+                        FileUtil.del(deployDir);
+                        log.info("成功清理磁盘部署目录: {}", deployDirPath);
+                    }
+                } catch (Exception e) {
+                    // 磁盘清理失败通常不回滚数据库事务，但需要记录警告日志
+                    log.warn("磁盘部署目录清理失败, deployKey: {}, 原因: {}", deployKey, e.getMessage());
+                }
+            }
+        }
+        return removed;
+    }
 
 }

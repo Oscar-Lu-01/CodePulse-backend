@@ -2,7 +2,7 @@ package cn.edu.hhu.codepulse.service.impl;
 
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;
-import cn.edu.hhu.codepulse.model.dto.UserQueryRequest;
+import cn.edu.hhu.codepulse.model.dto.user.UserQueryRequest;
 import cn.edu.hhu.codepulse.model.enums.UserRoleEnum;
 import cn.edu.hhu.codepulse.model.vo.LoginUserVO;
 import cn.edu.hhu.codepulse.model.vo.UserVO;
