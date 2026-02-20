@@ -12,17 +12,30 @@ import org.springframework.boot.test.context.SpringBootTest;
 class AiCodeGenerateServiceTest {
 
     @Resource
-    private AiCodeGeneratorService aiCodeGenerateService;
+    private AiCodeGeneratorService aiCodeGeneratorService;
 
     @Test
     void generateHtmlCode() {
-        HtmlCodeResult result =  aiCodeGenerateService.generateHtmlCode("做一个编程导航html代码，20行左右");
+        HtmlCodeResult result =  aiCodeGeneratorService.generateHtmlCode("做一个编程导航html代码，20行左右");
         Assertions.assertNotNull(result);
     }
 
     @Test
     void generateMultiFileCode() {
-        MultiFileCodeResult result = aiCodeGenerateService.generateMultiFileCode("做一个编程导航程序代码");
+        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode("做一个编程导航程序代码");
         Assertions.assertNotNull(result);
     }
+
+    @Test
+    void testChatMemory() {
+        HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode( "做个程序员鱼皮的工具网站，总代码量不超过 20 行");
+        Assertions.assertNotNull(result);
+        result = aiCodeGeneratorService.generateHtmlCode( "不要生成网站，告诉我你刚刚做了什么？");
+        Assertions.assertNotNull(result);
+        result = aiCodeGeneratorService.generateHtmlCode( "做个程序员鱼皮的工具网站，总代码量不超过 20 行");
+        Assertions.assertNotNull(result);
+        result = aiCodeGeneratorService.generateHtmlCode( "不要生成网站，告诉我你刚刚做了什么？");
+        Assertions.assertNotNull(result);
+    }
+
 }

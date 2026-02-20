@@ -6,6 +6,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import cn.edu.hhu.codepulse.model.entity.ChatHistory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 
 import java.time.LocalDateTime;
 
@@ -51,4 +52,12 @@ public interface ChatHistoryService extends IService<ChatHistory> {
     Page<ChatHistory> listAppChatHistoryByPage(Long appId, int pageSize,
                                                LocalDateTime lastCreateTime,
                                                User loginUser);
+    /**
+     * 缓存过期 拉取数据库到内存
+     * @param appId 对话 id
+     * @param chatMemory 对话记忆保存位置
+     * @param maxCount 拉取对话最大值
+     * @return
+     */
+    int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
 }

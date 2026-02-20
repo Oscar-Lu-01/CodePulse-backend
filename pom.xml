@@ -81,13 +81,29 @@
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
             <version>1.1.0-beta7</version>
         </dependency>
-        <!--流式响应： langchain4j + React -->
+        <!-- 流式响应： langchain4j + React -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-reactor</artifactId>
             <version>1.1.0-beta7</version>
         </dependency>
+        <!-- langchain4j + Redis 对话记忆存储 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-redis-spring-boot-starter</artifactId>
+            <version>1.1.0-beta7</version>
+        </dependency>
+        <!-- caffeine 对话记忆本地缓存 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
 
+        <!-- 分布式session Spring Session + Redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
 
 
         <dependency>
