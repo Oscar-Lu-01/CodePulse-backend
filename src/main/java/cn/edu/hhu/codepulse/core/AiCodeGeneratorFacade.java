@@ -4,12 +4,19 @@ import cn.edu.hhu.codepulse.ai.AiCodeGeneratorService;
 import cn.edu.hhu.codepulse.ai.AiCodeGeneratorServiceFactory;
 import cn.edu.hhu.codepulse.ai.model.HtmlCodeResult;
 import cn.edu.hhu.codepulse.ai.model.MultiFileCodeResult;
+import cn.edu.hhu.codepulse.ai.model.message.AiResponseMessage;
+import cn.edu.hhu.codepulse.ai.model.message.ToolExecutedMessage;
+import cn.edu.hhu.codepulse.ai.model.message.ToolRequestMessage;
 import cn.edu.hhu.codepulse.core.parser.CodeParser;
 import cn.edu.hhu.codepulse.core.parser.CodeParserExecutor;
 import cn.edu.hhu.codepulse.core.saver.CodeFileSaverExecutor;
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;
 import cn.edu.hhu.codepulse.model.enums.CodeGenTypeEnum;
+import cn.hutool.json.JSONUtil;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolExecution;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -79,8 +86,8 @@ public class AiCodeGeneratorFacade {
                 yield processCodeStream(codeStream, CodeGenTypeEnum.MULTI_FILE, appId);
             }
             case VUE_PROJECT -> {
-                Flux<String> codeStream = aiCodeGeneratorService.generateVueProjectCodeStream(appId,userMessage);
-                yield processCodeStream(codeStream, CodeGenTypeEnum.MULTI_FILE, appId);
+                TokenStream codeStream = aiCodeGeneratorService.generateVueProjectCodeStream(appId,userMessage);
+                yield processTokenStream(codeStream);
             }
             default -> {
                 String errorMessage = "不支持的生成类型：" + codeGenTypeEnum.getValue();
@@ -116,5 +123,43 @@ public class AiCodeGeneratorFacade {
             }
         });
     }
+
+
+    /**
+     * 将 TokenStream 转换为 Flux<String>，并传递工具调用信息
+     *
+     * @param tokenStream TokenStream 对象
+     * @return Flux<String> 流式响应
+     */
+    private Flux<String> processTokenStream(TokenStream tokenStream) {
+        return Flux.create(sink -> {
+            tokenStream.onPartialResponse((String partialResponse) -> {
+                        //1、为返回的流封装message信息（AI回复/流信息/工具调用信息/工具执行完成信息） 便于前端与数据库存储
+                        AiResponseMessage aiResponseMessage = new AiResponseMessage(partialResponse);
+                        sink.next(JSONUtil.toJsonStr(aiResponseMessage));
+                    })
+                    .onPartialToolExecutionRequest((index, toolExecutionRequest) -> {
+                        // 2. 处理工具请求片段：当 AI 决定调用外部函数（如查天气、查数据库）时触发
+                        ToolRequestMessage toolRequestMessage = new ToolRequestMessage(toolExecutionRequest);
+                        sink.next(JSONUtil.toJsonStr(toolRequestMessage));
+                    })
+                    .onToolExecuted((ToolExecution toolExecution) -> {
+                        // 3. 处理工具执行结果：当本地代码执行完工具方法并获得返回值后触发
+                        ToolExecutedMessage toolExecutedMessage = new ToolExecutedMessage(toolExecution);
+                        sink.next(JSONUtil.toJsonStr(toolExecutedMessage));
+                    })
+                    .onCompleteResponse((ChatResponse response) -> {
+                        // 4. 处理最终完成：当 AI 所有的回复（包括可多次工具调用循环）全部结束
+                        sink.complete();
+                    })
+                    .onError((Throwable error) -> {
+                        // 5. 异常处理：捕获网络中断或模型生成错误
+                        error.printStackTrace();
+                        sink.error(error);
+                    })
+                    .start();
+        });
+    }
+
 
 }

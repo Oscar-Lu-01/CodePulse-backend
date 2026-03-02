@@ -26,6 +26,7 @@ class AiCodeGenerateServiceTest {
         Assertions.assertNotNull(result);
     }
 
+
     @Test
     void testChatMemory() {
         HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode( "做个程序员鱼皮的工具网站，总代码量不超过 20 行");
