@@ -1,13 +1,12 @@
 package cn.edu.hhu.codepulse.core;
 
-import cn.edu.hhu.codepulse.ai.AiCodeGeneratorService;
-import cn.edu.hhu.codepulse.ai.AiCodeGeneratorServiceFactory;
+import cn.edu.hhu.codepulse.ai.service.AiCodeGeneratorService;
+import cn.edu.hhu.codepulse.ai.factory.AiCodeGeneratorServiceFactory;
 import cn.edu.hhu.codepulse.ai.model.HtmlCodeResult;
 import cn.edu.hhu.codepulse.ai.model.MultiFileCodeResult;
 import cn.edu.hhu.codepulse.ai.model.message.AiResponseMessage;
 import cn.edu.hhu.codepulse.ai.model.message.ToolExecutedMessage;
 import cn.edu.hhu.codepulse.ai.model.message.ToolRequestMessage;
-import cn.edu.hhu.codepulse.core.parser.CodeParser;
 import cn.edu.hhu.codepulse.core.parser.CodeParserExecutor;
 import cn.edu.hhu.codepulse.core.saver.CodeFileSaverExecutor;
 import cn.edu.hhu.codepulse.exception.BusinessException;

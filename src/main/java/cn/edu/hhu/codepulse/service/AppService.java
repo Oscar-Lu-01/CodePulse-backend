@@ -1,11 +1,13 @@
 package cn.edu.hhu.codepulse.service;
 
+import cn.edu.hhu.codepulse.model.dto.app.AppAddRequest;
 import cn.edu.hhu.codepulse.model.dto.app.AppQueryRequest;
 import cn.edu.hhu.codepulse.model.entity.User;
 import cn.edu.hhu.codepulse.model.vo.AppVO;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import cn.edu.hhu.codepulse.model.entity.App;
+import jakarta.servlet.http.HttpServletRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -16,6 +18,14 @@ import java.util.List;
  * @author <a href="https://github.com/Oscar-Lu-01">抱璞</a>
  */
 public interface AppService extends IService<App> {
+
+    /**
+     *
+     * @param appAddRequest 新增应用请求
+     * @param loginUser 登录用户
+     * @return
+     */
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 
     /**
      * 获取应用封装视图对象

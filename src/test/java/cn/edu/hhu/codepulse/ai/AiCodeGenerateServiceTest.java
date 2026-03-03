@@ -2,6 +2,7 @@ package cn.edu.hhu.codepulse.ai;
 
 import cn.edu.hhu.codepulse.ai.model.HtmlCodeResult;
 import cn.edu.hhu.codepulse.ai.model.MultiFileCodeResult;
+import cn.edu.hhu.codepulse.ai.service.AiCodeGeneratorService;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

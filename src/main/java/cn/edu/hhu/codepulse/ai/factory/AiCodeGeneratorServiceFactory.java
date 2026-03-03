@@ -1,5 +1,6 @@
-package cn.edu.hhu.codepulse.ai;
+package cn.edu.hhu.codepulse.ai.factory;
 
+import cn.edu.hhu.codepulse.ai.service.AiCodeGeneratorService;
 import cn.edu.hhu.codepulse.ai.tools.FileWriteTool;
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;

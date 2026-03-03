@@ -1,4 +1,4 @@
-package cn.edu.hhu.codepulse.ai;
+package cn.edu.hhu.codepulse.ai.service;
 
 import cn.edu.hhu.codepulse.ai.model.HtmlCodeResult;
 import cn.edu.hhu.codepulse.ai.model.MultiFileCodeResult;
