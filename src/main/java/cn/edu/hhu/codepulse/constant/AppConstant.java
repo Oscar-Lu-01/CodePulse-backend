@@ -27,4 +27,9 @@ public interface AppConstant {
      */
     String CODE_DEPLOY_HOST = "http://localhost";
 
+    /**
+     * 截图临时保存目录
+     */
+    String SCREENSHOT_ROOT_DIR = System.getProperty("user.dir") + "/tmp/screenshots";
+
 }
