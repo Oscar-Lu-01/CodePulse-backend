@@ -1,7 +1,7 @@
 package cn.edu.hhu.codepulse.ai.factory;
 
 import cn.edu.hhu.codepulse.ai.service.AiCodeGeneratorService;
-import cn.edu.hhu.codepulse.ai.tools.FileWriteTool;
+import cn.edu.hhu.codepulse.ai.tools.*;
 import cn.edu.hhu.codepulse.exception.BusinessException;
 import cn.edu.hhu.codepulse.exception.ErrorCode;
 import cn.edu.hhu.codepulse.model.enums.CodeGenTypeEnum;
@@ -42,6 +42,12 @@ public class AiCodeGeneratorServiceFactory {
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
 
+    @Resource
+    private ToolManager toolManager;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
+
     /**
      * AI 服务实例缓存
      */
@@ -77,9 +83,6 @@ public class AiCodeGeneratorServiceFactory {
         return appId + "_" + codeGenType.getValue();
     }
 
-    @Resource
-    private ChatHistoryService chatHistoryService;
-
 
     /**
      * 创建新的 AI 服务实例（区分类型）
@@ -106,7 +109,7 @@ public class AiCodeGeneratorServiceFactory {
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
                     .streamingChatModel(reasoningStreamingChatModel)
                     .chatMemoryProvider(memoryId -> chatMemory)
-                    .tools(new FileWriteTool())
+                    .tools(toolManager.getAllTools())
                     .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                             toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                     ))

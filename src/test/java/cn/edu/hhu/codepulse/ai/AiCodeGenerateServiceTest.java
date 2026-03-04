@@ -4,8 +4,10 @@ import cn.edu.hhu.codepulse.ai.model.HtmlCodeResult;
 import cn.edu.hhu.codepulse.ai.model.MultiFileCodeResult;
 import cn.edu.hhu.codepulse.ai.service.AiCodeGeneratorService;
 import jakarta.annotation.Resource;
+import org.apache.catalina.core.ApplicationContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
